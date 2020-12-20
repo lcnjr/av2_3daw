@@ -8,16 +8,22 @@
 <?php
 require_once('conexao.php');
 $conn = createCon();	
-
 if(isset($_POST['btn2'])) { 
 
     if((isset($_POST['card'])) && (isset($_POST['nome'])) 
     ){
-        echo "<script type='text/javascript'>alert('Aluguel finalizado com sucesso');</script>";
-        header('Location:index.php');        
+                
+      
+            echo "<script type='text/javascript'>alert('Aluguel finalizado com sucesso');</script>";
+            header('Location:index.php');       
+    
+      
+                           
 
+        
 
    } 
+}
 ?>
 
 <form method="POST">

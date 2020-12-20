@@ -1,10 +1,14 @@
 <html>
 <head>
 <meta charset="UTF-8" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 </head>
 <body>
 
 <h1>Aluguel de Carros</h1>
+
+
 <?php
 require_once('conexao.php');
 $conn = createCon();	
@@ -20,16 +24,27 @@ if(isset($_POST['btn'])) {
         $dataInicio =$_POST['dataInicio'];
         $dataFim =$_POST['dataFim'];
         $date1=date("Y-m-d H:i:s",strtotime($dataInicio));
-        $date2=date("Y-m-d H:i:s",strtotime($dataFim));
+        $date2=date("Y-m-d H:i:s",strtotime($dataFim));      
+      
        
         
        
                 $sql = "INSERT into alocacao(CPF_cliente,dataInicio,dataFim,lojaRetirada,carro)	values ('" . $cpf . "','" . $date1. "',' 
                 " . $date2. "', " . $loja. ", " . $carro. ")"; 
                 
-                if ($conn->query($sql) === TRUE) {
-                    echo "<script type='text/javascript'>alert('inserido');</script> " ;
-                    header('Location:finalizar.php');
+                if ($conn->query($sql) === TRUE) {     
+                                 
+                        $sql2 = "UPDATE `carro` SET `alugado` = '1' WHERE (`idcarro` = " . $carro. ")";                  
+                    if ($conn->query($sql2) === TRUE) {
+                        echo "<script type='text/javascript'>alert('inserido');</script> " ;
+                        header('Location:finalizar.php');   
+                
+                    }else{
+                        echo "<script type='text/javascript'>alert('Falha ao finalizar ');</script>" ;
+                    
+                    }
+                   
+                   
 
 
                 } else {
@@ -50,7 +65,7 @@ if(isset($_POST['btn'])) {
 <label for="fname">CPF:</label>
 <input type="text" id="cpf" name="cpf" required><br>
 <label for="cidade">Cidade:</label>
-<select name="cidade" id="cidade" required>
+<select name="cidade" id="cidade"  required>
   <option value="Belford Roxo">Belford Roxo </option>
   <option value="Rio de Janeiro">Rio de Janeiro</option>
   <option value="São João de Meriti">São João de Meriti</option>
@@ -59,55 +74,12 @@ if(isset($_POST['btn'])) {
 
 
 <label for="carros">Escolha O Carro:</label>
-<select name="selectCarro" required>
-<?php
-	$sql = "SELECT idcarro,modelo FROM carro where alugado = 0"; 
-	$resultado = $conn->query($sql);
-	
-	/* if ($resultado->num_rows > 0) { */
-       
-		if ($resultado->num_rows > 0) {
-			while ($linha = mysqli_fetch_assoc($resultado)) {
-            $id =  $linha["idcarro"];
-            $modelo = $linha["modelo"];
-
-			echo "<option value='$id'>$modelo </OPTION>";		 
-		 } 
-	} else {
-        echo "<script type='text/javascript'>alert('Sem carros cadastrado');</script>";
-        echo "<option value= 'vazio'>vazio</OPTION>";	
-	}
- 
-    
-
-?>
- 
+<select name="selectCarro" id = "selectCarro">
 </select>
 <br>
 
 <label for="loja">Loja para Retirada</label>
-<select name="selectLoja" required>
-<?php
-	$sql = "SELECT idloja, nome FROM loja"; 
-	$resultado = $conn->query($sql);
-	
-	if ($resultado->num_rows > 0) {
-        while ($linha = mysqli_fetch_assoc($resultado)) {
-        $idloja =  $linha["idloja"];
-        $nomeloja = $linha["nome"];
-
-        echo "<option value='$idloja'>$nomeloja </OPTION>";		 
-     } 
-} else {
-    echo "<script type='text/javascript'>alert('Sem Lojas');</script>";
-    echo "<option value= 'vazio'>vazio</OPTION>";	
-}
-
- 
-    
-
-?>
- 
+<select name="selectLoja" id ="selectLoja"  required> 
 </select>
 <br>
 <label for="dataInicio">Data de retirada:</label>
@@ -122,4 +94,49 @@ if(isset($_POST['btn'])) {
 <?php 
 closeCon($conn);
 ?>
+
 </html>
+<script>
+
+  $('#cidade').on("change",function(){
+      var cidade = $(this).val();
+      $.ajax({
+            url: 'preencheCarros.php',
+            type: 'POST',
+            data:{cid:cidade},
+            beforeSend: function(){
+               $('#selectCarro').html("carregando ...");
+
+            },success:function (data){     
+                      
+                 $('#selectCarro').html(data);
+            
+
+            },error:function (data){
+                 $('#selectCarro').html("Erro ao carregar os carros");
+
+            }
+
+      });
+      $.ajax({
+            url: 'preencheLoja.php',
+            type: 'POST',
+            data:{cid:cidade},
+            beforeSend: function(){
+               $('#selectLoja').html("carregando ...");
+
+            },success:function (data){     
+                        
+                 $('#selectLoja').html(data);
+            
+
+            },error:function (data){
+                 $('#selectLoja').html("Erro ao carregar os carros");
+
+            }
+
+      });
+    
+  });
+
+</script>
